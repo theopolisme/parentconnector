@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>ParentConnector API</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='api.css') }}" type="text/css" />
+    </head>
+    <body>
+        <a href="https://github.com/theopolisme/parentconnector"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
+        <div class="container">
+            <h1>ParentConnector API</h1>
+            <p>This is an unofficial <a href="//en.wikipedia.org/wiki/Application_programming_interface">API</a> for Pearson's ParentCONNECTxp, providing programmatic access to grades and student information. It works, but some bugs might still need to be ironed out, so please report any if you see them.</p>
+            <p><strong>Be warned:</strong> The API can take a long time to return results (anywhere from twenty seconds to over a minute) due to the inherent slowness of the ParentConnect infrastructure. If you're looking for lightning fast results, hack into the database and add some indexes ;)</p>
+            <h2>Requests</h2>
+            <p>The API responds to POST requests made to <span class="code">{{ url_for('api', _external=True, _scheme='https') }}</span>. Parameters are described in the tables below:</p>
+            <table class="parameters">
+                <tr>
+                    <th colspan="4">Always</th>
+                </tr>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Values</th>
+                    <th>Required?</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>action</td>
+                    <td><span class="code">assignments</span>, <span class="code">students</span></td>
+                    <td>Yes</td>
+                    <td>The API will provide assignment information in <span class="code">assignments</span> mode, and provide a list of students associated with an account in <span class="code">students</span> mode.</td>
+                </tr>
+                <tr>
+                    <td>base_url</td>
+                    <td>string</td>
+                    <td>Yes</td>
+                    <td>The base url of the ParentConnect instance, including the protocol and trailing slash. For example, <span class="code">https://parentconnect.scsk12.org/</span>.</td>
+                </tr>
+                <tr>
+                    <td>username</td>
+                    <td>string</td>
+                    <td>Yes</td>
+                    <td>The username of the ParentConnect user to log in as. Typically, an email address in all capitals. For example, <span class="code">EMAILADDRESS@DOMAIN.COM</span>.</td>
+                </tr>
+                <tr>
+                    <td>password</td>
+                    <td>string</td>
+                    <td>Yes</td>
+                    <td>The password of the ParentConnect user to log in as. For example, <span class="code">XYAKU72SKW22S</span>.</td>
+                </tr>
+            </table>
+            <table class="parameters">
+                <tr>
+                    <th colspan="4"><span class="code">assignments</span> Mode</th>
+                </tr>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Values</th>
+                    <th>Required?</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>student_index</td>
+                    <td>integer</td>
+                    <td>No</td>
+                    <td>If specified, only the assignment data for the student with the given index will be returned. This index can be obtained through a <span class="code">students</span> request.</td>
+                </tr>
+            </table>
+            <table class="parameters">
+                <tr>
+                    <th colspan="4"><span class="code">students</span> Mode</th>
+                </tr>
+                <tr>
+                    <th>No special parameters accepted.</th>
+                </tr>
+            </table>
+            <h2>Responses</h2>
+            <h3>General information</h3>
+            <p>The JSON response object always contains a <span class="code">success</span> key, whose value is either <span class="code">true</span> or <span class="code">false</span>. If an error has occurred, the response will look like this:</p>
+            <pre>{
+    "success": false,
+    "message": <span class="resp-dtype">string</span> <span class="resp-desc">human-readable description of error</span>
+}</pre>
+            <p>Additionally, all non-error responses contain an <span class="code">elapsed</span> key, which is the number of seconds it took to generate the data requested. It is provided in the following format:</p>
+            <pre>{
+    "success": true,
+    "elapsed": <span class="resp-dtype">float</span> <span class="resp-desc">number of seconds elapsed to generate response</span>,
+    ...
+}</pre>
+            <h3>Assignments</h3>
+            <p>Upon a successful request with <span class="code">action=assignments</span>, the response will look like this:</p>
+            <pre>{
+    "success": true,
+    "elapsed": ∞,
+    "assignments": [
+        {
+            "course": <span class="resp-dtype">string</span> <span class="resp-desc">the course title</span>,
+            "period": <span class="resp-dtype">string</span> <span class="resp-desc">the class period</span>,
+            "assignment": <span class="resp-dtype">string</span> <span class="resp-desc">the assignment title</span>,
+            "type": <span class="resp-dtype">string</span> <span class="resp-desc">the assignment type, varies by teacher</span>, 
+            "due":  <span class="resp-dtype">string</span> <span class="resp-desc">the assignment due date</span>
+            "score": <span class="resp-dtype">string</span> <span class="resp-desc">the score received on the assignment, specific format varies</span>,
+            "teacher": <span class="resp-dtype">string</span> <span class="resp-desc">the teacher's name</span>,
+            "remark": <span class="resp-dtype">string</span> <span class="resp-desc">a remark added by the teacher about the particular assignment</span>
+        },
+        ...
+    ]
+}</pre>
+            <h3>Students</h3>
+            <p>Upon a successful request with <span class="code">action=students</span>, the response will look like this:</p>
+            <pre>{
+    "success": true,
+    "elapsed": ∞,
+    "students": [
+        {
+            "name": <span class="resp-dtype">string</span> <span class="resp-desc">the student's full name</span>,
+            "id": <span class="resp-dtype">integer</span> <span class="resp-desc">the student's unique id</span>
+        },
+        ...
+    ]
+}</pre>
+        </div>
+        <div class="footer">
+            A little project by <a href="https://theopolis.me">@theopolisme</a> (<a href="https://github.com/theopolisme/parentconnector">source code</a>).
+        </div>
+    </body>
+</html>
