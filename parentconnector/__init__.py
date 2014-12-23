@@ -72,11 +72,14 @@ def api():
     elif action == 'assignments':
         result = connector.get_assignments(student_index=request.form.get('student_index'))
 
-    return jsonify({
+    response = jsonify({
         'success': True,
         'elapsed': time.time() - start_time,
         action: result
     })
+
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
 
 if __name__ == '__main__':
     app.run()
