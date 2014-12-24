@@ -136,6 +136,7 @@ class ParentConnector(object):
             for row in grade_rows:
                 children = map(get_text_if_not_empty, row.find_all('td'))
                 data.append({
+                    'student_index': index,
                     'course': children[0],
                     'period': children[1],
                     'assignment': children[2],
@@ -151,9 +152,9 @@ class ParentConnector(object):
         if student_index:
             return get_student_assignments(student_index)
 
-        output = {}
+        output = []
         for student in self.get_students():
-            output[student['name']] = get_student_assignments(student['index'])
+            output.extend(get_student_assignments(student['index']))
         return output
 
     def destroy(self):
